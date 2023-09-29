@@ -6,17 +6,24 @@ import Categories from "../expense-tracker/categories";
 const schema = z.object({
   description: z.string().min(3, {message : "at least 3 characters"}).max(50),
   amount: z.number({invalid_type_error : "Amount is required"}).min(0.01).max(100_000),
-  Category: z.enum(Categories, {
+  category: z.enum(Categories, {
     errorMap: () =>({message:"Category required"}) 
   }),
 });
 
 type ExpenseFormData = z.infer<typeof schema>;
 
-function Form() {
+interface Props{
+  onSubmit : (data:ExpenseFormData) =>void;
+}
+
+
+
+function Form({onSubmit}:Props) {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isValid },
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(schema),
@@ -24,7 +31,10 @@ function Form() {
 
   return (
     <>
-      <form onSubmit={ handleSubmit (data => console.log(data))}>
+      <form onSubmit={handleSubmit (data =>{
+        onSubmit(data);
+        reset();
+      })}>
         <div className="mb-3">
           <label htmlFor="description" className="form-label">
             Description
@@ -62,7 +72,7 @@ function Form() {
           <select
             id="category"
             className="form-select"
-            {...register("Category")}
+            {...register("category")}
           >
             <option value=""></option>
             {Categories.map((item) => (
@@ -71,8 +81,8 @@ function Form() {
               </option>
             ))}
           </select>
-          {errors.Category && (
-            <p className="text-danger">{errors.Category.message}</p>
+          {errors.category && (
+            <p className="text-danger">{errors.category.message}</p>
           )}
         </div>
         <button disabled = {!isValid} className="btn btn-primary mb-3" type="submit">

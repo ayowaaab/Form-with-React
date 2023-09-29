@@ -20,7 +20,7 @@ function App() {
 
   return (
     <div>
-      <Form />
+      <Form onSubmit={ (expense) => setExpenses( [...Expenses,{...expense,id:Expenses.length+1}] ) } />
       <ExpensFilter onSelectCategory={(x) => setSelectedCategory(x)} />
       <ListExpenses
         expenses={visibleExpenses}
