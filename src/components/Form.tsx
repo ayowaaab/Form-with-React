@@ -1,32 +1,44 @@
-import { Categories } from "../App";
-import { useForm, FieldValues } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import Categories from "../expense-tracker/categories";
 
-import { Expense } from "../expense-tracker/components/ListExpenses";
+const schema = z.object({
+  description: z.string().min(3, {message : "at least 3 characters"}).max(50),
+  amount: z.number({invalid_type_error : "Amount is required"}).min(0.01).max(100_000),
+  Category: z.enum(Categories, {
+    errorMap: () =>({message:"Category required"}) 
+  }),
+});
+
+type ExpenseFormData = z.infer<typeof schema>;
 
 function Form() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm();
-  const onSubmit = (data: FieldValues) => {};
+    formState: { errors, isValid },
+  } = useForm<ExpenseFormData>({
+    resolver: zodResolver(schema),
+  });
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={ handleSubmit (data => console.log(data))}>
         <div className="mb-3">
           <label htmlFor="description" className="form-label">
             Description
           </label>
           <input
-            {...register("description", { required: true, minLength: 3 })}
+            {...register("description")}
             id="description"
             type="text"
             className="form-control"
           />
-         
-          { errors.description?.type ==='required' && <p className="text-danger">The Name field is required</p>}
-          { errors.description?.type === 'minLength'  && <p className="text-danger">The Name length Must be more then 3 letters</p>}
+
+          {errors.description && (
+            <p className="text-danger">{errors.description.message}</p>
+          )}
         </div>
 
         <div className="mb-3">
@@ -34,11 +46,14 @@ function Form() {
             Amount
           </label>
           <input
-            {...register("amount")}
+            {...register("amount", {valueAsNumber: true})}
             id="amount"
             type="number"
             className="form-control"
           />
+          {errors.amount && (
+            <p className="text-danger">{errors.amount.message}</p>
+          )}
         </div>
         <div className="mb-3">
           <label htmlFor="category" className="form-label">
@@ -47,7 +62,7 @@ function Form() {
           <select
             id="category"
             className="form-select"
-            {...register("category")}
+            {...register("Category")}
           >
             <option value=""></option>
             {Categories.map((item) => (
@@ -56,8 +71,11 @@ function Form() {
               </option>
             ))}
           </select>
+          {errors.Category && (
+            <p className="text-danger">{errors.Category.message}</p>
+          )}
         </div>
-        <button className="btn btn-primary mb-3" type="submit">
+        <button disabled = {!isValid} className="btn btn-primary mb-3" type="submit">
           Submit
         </button>
       </form>

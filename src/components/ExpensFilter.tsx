@@ -1,5 +1,5 @@
-import React from "react";
-import { Categories } from "../App";
+import Categories from "../expense-tracker/categories";
+
 interface Props{
     onSelectCategory:(x:string)=>void;
 }
